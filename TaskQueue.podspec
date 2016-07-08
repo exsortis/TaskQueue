@@ -29,4 +29,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.source_files = 'TaskQueue'
+s.pod_target_xcconfig = { 'SWIFT_WHOLE_MODULE_OPTIMIZATION' => 'YES',
+                            'APPLICATION_EXTENSION_API_ONLY' => 'YES',
+                                'SWIFT_VERSION' => '2.3' }
 end
