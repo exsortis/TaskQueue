@@ -15,7 +15,7 @@ import Foundation
 
 // MARK: TaskQueue class
 
-public class TaskQueue: CustomStringConvertible {
+open class TaskQueue: CustomStringConvertible {
 
     public init() {
 
@@ -26,49 +26,49 @@ public class TaskQueue: CustomStringConvertible {
     //
     public typealias ClosureNoResultNext = () -> Void
     public typealias ClosureWithResult = (AnyObject?) -> Void
-    public typealias ClosureWithResultNext = (AnyObject? , AnyObject? -> Void) -> Void
+    public typealias ClosureWithResultNext = (AnyObject? , @escaping (AnyObject?) -> Void) -> Void
 
     //
     // tasks and completions storage
     //
-    public var tasks: [ClosureWithResultNext] = []
-    public lazy var completions: [ClosureNoResultNext] = []
+    open var tasks: [ClosureWithResultNext] = []
+    open lazy var completions: [ClosureNoResultNext] = []
 
     //
     // concurrency
     //
-    private(set) var numberOfActiveTasks: Int = 0
-    public var maximumNumberOfActiveTasks: Int = 1 {
+    fileprivate(set) var numberOfActiveTasks: Int = 0
+    open var maximumNumberOfActiveTasks: Int = 1 {
         willSet {
             assert(maximumNumberOfActiveTasks>0, "Setting less than 1 task at a time not allowed")
         }
     }
 
-    private var currentTask: ClosureWithResultNext? = nil
-    private(set) var lastResult: AnyObject! = nil
+    fileprivate var currentTask: ClosureWithResultNext? = nil
+    fileprivate(set) var lastResult: AnyObject! = nil
 
     //
     // queue state
     //
-    private(set) var running = false
+    fileprivate(set) var running = false
 
-    public var paused: Bool = false {
+    open var paused: Bool = false {
         didSet {
             running = !paused
         }
     }
 
-    private var cancelled = false
-    public func cancel() {
+    fileprivate var cancelled = false
+    open func cancel() {
         cancelled = true
     }
 
-    private var hasCompletions = false
+    fileprivate var hasCompletions = false
 
     //
     // start or resume the queue
     //
-    public func run(completion: ClosureNoResultNext? = nil) {
+    open func run(_ completion: ClosureNoResultNext? = nil) {
         if completion != nil {
             hasCompletions = true
             completions += [completion!]
@@ -88,10 +88,10 @@ public class TaskQueue: CustomStringConvertible {
         _runNextTask()
     }
 
-    private func _runNextTask(result: AnyObject? = nil) {
+    fileprivate func _runNextTask(_ result: AnyObject? = nil) {
         if (cancelled) {
-            tasks.removeAll(keepCapacity: false)
-            completions.removeAll(keepCapacity: false)
+            tasks.removeAll(keepingCapacity: false)
+            completions.removeAll(keepingCapacity: false)
         }
 
         if (numberOfActiveTasks >= maximumNumberOfActiveTasks) {
@@ -109,8 +109,8 @@ public class TaskQueue: CustomStringConvertible {
         //fetch one task synchronized
         objc_sync_enter(self)
         if self.tasks.count > 0 {
-            task = self.tasks.removeAtIndex(0)
-            self.numberOfActiveTasks++
+            task = self.tasks.remove(at: 0)
+            self.numberOfActiveTasks += 1
         }
         objc_sync_exit(self)
 
@@ -125,7 +125,7 @@ public class TaskQueue: CustomStringConvertible {
 
         let executeTask = {
             task!(self.maximumNumberOfActiveTasks>1 ? nil: result) { (nextResult: AnyObject?) in
-                self.numberOfActiveTasks--
+                self.numberOfActiveTasks -= 1
                 self._runNextTask(nextResult)
             }
         }
@@ -142,7 +142,7 @@ public class TaskQueue: CustomStringConvertible {
         }
     }
 
-    private func _complete() {
+    fileprivate func _complete() {
         paused = false
         running = false
 
@@ -150,7 +150,7 @@ public class TaskQueue: CustomStringConvertible {
             //synchronized remove completions
             objc_sync_enter(self)
             while completions.count > 0 {
-                (completions.removeAtIndex(0) as ClosureNoResultNext)()
+                (completions.remove(at: 0) as ClosureNoResultNext)()
             }
             objc_sync_exit(self)
         }
@@ -159,37 +159,37 @@ public class TaskQueue: CustomStringConvertible {
     //
     // skip the next task
     //
-    public func skip() {
+    open func skip() {
         if tasks.count>0 {
-            _ = tasks.removeAtIndex(0) //better way?
+            _ = tasks.remove(at: 0) //better way?
         }
     }
 
     //
     // remove all remaining tasks
     //
-    public func removeAll() {
-        tasks.removeAll(keepCapacity: false)
+    open func removeAll() {
+        tasks.removeAll(keepingCapacity: false)
     }
 
     //
     // count of the tasks left to execute
     //
-    public var count: Int {
+    open var count: Int {
         return tasks.count
     }
 
     //
     // re-run the current task
     //
-    public func retry(delay: Double = 0) {
+    open func retry(_ delay: Double = 0) {
         assert(maximumNumberOfActiveTasks==1, "You can call retry() only on serial queues")
 
-        tasks.insert(currentTask!, atIndex: 0)
+        tasks.insert(currentTask!, at: 0)
         currentTask = nil
 
         self._delay(seconds: delay) {
-            self.numberOfActiveTasks--
+            self.numberOfActiveTasks -= 1
             self._runNextTask(self.lastResult)
         }
     }
@@ -197,7 +197,7 @@ public class TaskQueue: CustomStringConvertible {
     //
     // Provide description when printed
     //
-    public var description: String {
+    open var description: String {
         let state = running ? "runing " : (paused ? "paused ": "stopped")
             let type = maximumNumberOfActiveTasks==1 ? "serial": "parallel"
 
@@ -208,10 +208,10 @@ public class TaskQueue: CustomStringConvertible {
         //print("queue deinit")
     }
 
-    private func _delay(seconds seconds:Double, completion:()->()) {
-        let popTime = dispatch_time(DISPATCH_TIME_NOW, Int64( Double(NSEC_PER_SEC) * seconds ))
+    fileprivate func _delay(seconds:Double, completion:@escaping ()->()) {
+        let popTime = DispatchTime.now() + Double(Int64( Double(NSEC_PER_SEC) * seconds )) / Double(NSEC_PER_SEC)
 
-        dispatch_after(popTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0)) {
+        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.low).asyncAfter(deadline: popTime) {
             completion()
         }
     }
@@ -225,22 +225,22 @@ public class TaskQueue: CustomStringConvertible {
 // ClosureWithResultNext type.
 //
 
-infix operator  +=~ {}
-infix operator  +=! {}
+infix operator  +=~
+infix operator  +=!
 
 // MARK: Add tasks on the current queue
 
 //
 // Add a task closure with result and next params
 //
-public func += (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureWithResultNext) {
+public func += (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureWithResultNext) {
     tasks += [task]
 }
 
 //
 // Add a task closure that doesn't take result/next params
 //
-public func += (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureNoResultNext) {
+public func += (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureNoResultNext) {
     tasks += [{
         _, next in
         task()
@@ -254,10 +254,10 @@ public func += (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue.
 // Add a task closure that doesn't take result/next params
 // The task gets executed on a low prio queueu
 //
-public func +=~ (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureNoResultNext) {
+public func +=~ (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureNoResultNext) {
     tasks += [{
         _, next in
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), {
+        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.low).async(execute: {
             task()
             next(nil)
         })
@@ -267,9 +267,9 @@ public func +=~ (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue
 //
 // The task gets executed on a low prio queueu
 //
-public func +=~ (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureWithResultNext) {
+public func +=~ (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureWithResultNext) {
     tasks += [{result, next in
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), {
+        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.low).async(execute: {
             task(result, next)
         })
     }]
@@ -281,10 +281,10 @@ public func +=~ (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue
 // Add a task closure that doesn't take result/next params
 // The task gets executed on the main queue - update UI, etc.
 //
-public func +=! (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureNoResultNext) {
+public func +=! (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureNoResultNext) {
     tasks += [{
         _, next in
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
             task()
             next(nil)
         })
@@ -294,10 +294,10 @@ public func +=! (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue
 //
 // The task gets executed on the main queue - update UI, etc.
 //
-public func +=! (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureWithResultNext) {
+public func +=! (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureWithResultNext) {
     tasks += [{
         result, next in
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
             task(result, next)
         })
     }]
@@ -308,7 +308,7 @@ public func +=! (inout tasks: [TaskQueue.ClosureWithResultNext], task: TaskQueue
 //
 // Add a queue to the task list
 //
-public func += (inout tasks: [TaskQueue.ClosureWithResultNext], queue: TaskQueue) {
+public func += (tasks: inout [TaskQueue.ClosureWithResultNext], queue: TaskQueue) {
     tasks += [{
         _, next in
         queue.run {

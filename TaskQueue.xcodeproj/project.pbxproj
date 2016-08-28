@@ -96,6 +96,7 @@
 					5B27949A1C3B45390030A02A = {
 						CreatedOnToolsVersion = 7.2;
 						DevelopmentTeam = DQUTMGPMX5;
+						LastSwiftMigration = 0800;
 					};
 				};
 			};
@@ -242,6 +243,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.pilgrimagesoftware.lib.TaskQueue;
 				PRODUCT_NAME = TaskQueue;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -260,6 +262,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.pilgrimagesoftware.lib.TaskQueue;
 				PRODUCT_NAME = TaskQueue;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
