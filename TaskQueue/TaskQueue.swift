@@ -211,7 +211,7 @@ open class TaskQueue: CustomStringConvertible {
     fileprivate func _delay(seconds:Double, completion:@escaping ()->()) {
         let popTime = DispatchTime.now() + Double(Int64( Double(NSEC_PER_SEC) * seconds )) / Double(NSEC_PER_SEC)
 
-        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.low).asyncAfter(deadline: popTime) {
+        DispatchQueue.global(qos: DispatchQoS.background.qosClass).asyncAfter(deadline: popTime) {
             completion()
         }
     }
@@ -233,14 +233,14 @@ infix operator  +=!
 //
 // Add a task closure with result and next params
 //
-public func += (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureWithResultNext) {
+public func += (tasks: inout [TaskQueue.ClosureWithResultNext], task: @escaping TaskQueue.ClosureWithResultNext) {
     tasks += [task]
 }
 
 //
 // Add a task closure that doesn't take result/next params
 //
-public func += (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureNoResultNext) {
+public func += (tasks: inout [TaskQueue.ClosureWithResultNext], task: @escaping TaskQueue.ClosureNoResultNext) {
     tasks += [{
         _, next in
         task()
@@ -254,10 +254,10 @@ public func += (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.
 // Add a task closure that doesn't take result/next params
 // The task gets executed on a low prio queueu
 //
-public func +=~ (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureNoResultNext) {
+public func +=~ (tasks: inout [TaskQueue.ClosureWithResultNext], task: @escaping TaskQueue.ClosureNoResultNext) {
     tasks += [{
         _, next in
-        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.low).async(execute: {
+        DispatchQueue.global(qos: DispatchQoS.background.qosClass).async(execute: {
             task()
             next(nil)
         })
@@ -267,9 +267,9 @@ public func +=~ (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue
 //
 // The task gets executed on a low prio queueu
 //
-public func +=~ (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureWithResultNext) {
+public func +=~ (tasks: inout [TaskQueue.ClosureWithResultNext], task: @escaping TaskQueue.ClosureWithResultNext) {
     tasks += [{result, next in
-        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.low).async(execute: {
+        DispatchQueue.global(qos: DispatchQoS.background.qosClass).async(execute: {
             task(result, next)
         })
     }]
@@ -281,7 +281,7 @@ public func +=~ (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue
 // Add a task closure that doesn't take result/next params
 // The task gets executed on the main queue - update UI, etc.
 //
-public func +=! (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureNoResultNext) {
+public func +=! (tasks: inout [TaskQueue.ClosureWithResultNext], task: @escaping TaskQueue.ClosureNoResultNext) {
     tasks += [{
         _, next in
         DispatchQueue.main.async(execute: {
@@ -294,7 +294,7 @@ public func +=! (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue
 //
 // The task gets executed on the main queue - update UI, etc.
 //
-public func +=! (tasks: inout [TaskQueue.ClosureWithResultNext], task: TaskQueue.ClosureWithResultNext) {
+public func +=! (tasks: inout [TaskQueue.ClosureWithResultNext], task: @escaping TaskQueue.ClosureWithResultNext) {
     tasks += [{
         result, next in
         DispatchQueue.main.async(execute: {
