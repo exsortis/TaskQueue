@@ -1,9 +1,9 @@
 TaskQueue (Swift)
 =========
 
-TaskQueue is now __Swift 2.0__. If you need Swift 1.2, checkout version [0.9.6](https://github.com/icanzilb/TaskQueue/releases/tag/0.9.6)
+TaskQueue now supports __Swift 3.0__. 
 
-#### ver 0.9.8
+#### ver 0.9.9
 
 Contents of this readme
 
@@ -271,6 +271,8 @@ TaskQueue is available under the MIT license. See the LICENSE file for more info
 <a name="version"></a>
 Version History
 ========
+
+**0.9.9:** TaskQueue updated for Swift 3.0
 
 **0.9.8:** TaskQueue is now Swift 2.0
 
