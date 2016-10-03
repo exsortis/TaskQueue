@@ -3,7 +3,7 @@
 //  DemoAndTestsTests
 //
 //  Created by Marin Todorov on 6/21/14.
-//  Copyright (c) 2014 Underplot ltd. All rights reserved.
+//  Copyright (c) 2014-present Underplot ltd. All rights reserved.
 //
 
 import XCTest
@@ -27,7 +27,7 @@ class DemoAndTestsTests: XCTestCase {
     
     func testPerformanceExample() {
         // This is an example of a performance test case.
-        self.measureBlock() {
+        self.measure() {
             // Put the code you want to measure the time of here.
         }
     }

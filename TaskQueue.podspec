@@ -13,10 +13,8 @@ Pod::Spec.new do |s|
   s.summary          = "Task management made easy, bounce tasks between main thread and background threads like a pro"
   s.description      = <<-DESC
 	TaskQueue is a Swift library which allows you to schedule tasks once and then let the queue execute them in a synchronous matter. The great thing about TaskQueue is that you get to decide on which GCD queue each of your tasks should execute beforehand and leave TaskQueue to do switching of queues as it goes.
-	
-	Even if your tasks are asynchronious like fetching location, downloading files, etc. TaskQueue will wait until they are finished before going on with the next task.
 
-  	I developed it for my Swift app called **Doodle Doodle** (http://doodledoodle.io) and wanted to share it with everyone
+	Even if your tasks are asynchronous like fetching location, downloading files, etc. TaskQueue will wait until they are finished before going on with the next task.
                        DESC
   s.homepage         = "https://github.com/icanzilb/TaskQueue"
   s.screenshots      = "https://raw.githubusercontent.com/icanzilb/TaskQueue/master/etc/readme_schema.png"
@@ -31,7 +29,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.source_files = 'TaskQueue'
-s.pod_target_xcconfig = { 'SWIFT_WHOLE_MODULE_OPTIMIZATION' => 'YES',
+  s.pod_target_xcconfig = { 'SWIFT_WHOLE_MODULE_OPTIMIZATION' => 'YES',
                             'APPLICATION_EXTENSION_API_ONLY' => 'YES',
                                 'SWIFT_VERSION' => '3.0' }
 end

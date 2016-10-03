@@ -1,7 +1,7 @@
 TaskQueue (Swift)
 =========
 
-TaskQueue now supports __Swift 3.0__. 
+TaskQueue now supports __Swift 3.0__.
 
 #### ver 0.9.9
 
@@ -10,7 +10,7 @@ Contents of this readme
 * <a href="#intro">Intro</a>
 * <a href="#simple">Sync and Async Tasks Example</a>
 * <a href=“#parallel”>Serial and Concurrent Tasks </a>
-* <a href="#gcd">GDC Queue Control</a>
+* <a href="#gcd">GCD Queue Control</a>
 * <a href="#extensive">Extensive Example</a>
 * <a href="#credit">Credit</a>
 * <a href="#license">License</a>
@@ -32,7 +32,8 @@ Last but not least your tasks have full flow control over the queue, depending o
 
 Installation
 ========
-_The infrastructure and best practices for distributing Swift libraries is currently being developed by the developer community during this beta period of the language and Xcode. In the meantime, you can simply add TaskQueue as a git submodule, and drag the `TaskQueue.swift` file into your Xcode project._
+
+Include either as source code or through CocoaPods.
 
 ---
 <a name="simple"></a>
@@ -68,7 +69,7 @@ More interesting of course is when you have to do some asynchronious work in the
 let queue = TaskQueue()
 
 queue.tasks +=~ { result, next in
-    
+
     var url = NSURL(string: "http://jsonmodel.com")
 
     NSURLSession.sharedSession().dataTaskWithURL(url,
@@ -79,11 +80,11 @@ queue.tasks +=~ { result, next in
 }
 
 queue.tasks +=! {
-    println("execute next task after network call is finished")
+    print("execute next task after network call is finished")
 }
 
 queue.run {
-    println("finished")
+    print("finished")
 }
 </pre>
 
@@ -109,7 +110,7 @@ queue.maximumNumberOfActiveTasks = 10
 
 This will make the queue execute up to 10 tasks at the same time.
 
-**Note**: _As soon as you allow for more than one task at a time certain restrictions apply: you cannot invoke retry(), and you cannot pass result from one task to another._ 
+**Note**: _As soon as you allow for more than one task at a time certain restrictions apply: you cannot invoke retry(), and you cannot pass result from one task to another._
 
 <a name="gcd"></a>
 GCD Queue control
@@ -159,35 +160,35 @@ let queue = TaskQueue()
 // Simple sync task, just prints to console
 //
 queue.tasks += {
-    println("====== tasks ======")
-    println("task #1: run")
+    print("====== tasks ======")
+    print("task #1: run")
 }
 
 //
 // A task, which can be asynchronious because it gets
-// result and next params and can call next() when ready 
+// result and next params and can call next() when ready
 // with async work to tell the queue to continue running
 //
 queue.tasks += { result, next in
-    println("task #2: begin")
-    
+    print("task #2: begin")
+
     delay(seconds: 2) {
-        println("task #2: end")
+        print("task #2: end")
         next(nil)
     }
-    
+
 }
 
 //
 // A task which retries the same task over and over again
 // until it succeeds (i.e. util when you make network calls)
-// NB! Important to capture **queue** as weak to prevent 
+// NB! Important to capture **queue** as weak to prevent
 // memory leaks!
 //
 var cnt = 1
 queue.tasks += {[weak queue] result, next in
-    println("task #3: try #\(cnt)")
-    
+    print("task #3: try #\(cnt)")
+
     if ++cnt > 3 {
         next(nil)
     } else {
@@ -200,14 +201,14 @@ queue.tasks += {[weak queue] result, next in
 // (no capture cycle here)
 //
 queue.tasks += ({
-    println("task #4: run")
-    println("task #4: will skip next task")
-    
+    print("task #4: run")
+    print("task #4: will skip next task")
+
     queue.skip()
     })
 
 queue.tasks += {
-    println("task #5: run")
+    print("task #5: run")
 }
 
 //
@@ -217,19 +218,19 @@ queue.tasks += {
 // NB: This does not remove the completions added
 //
 queue.tasks += {
-    println("task #6: run")
-    
-    println("task #6: will append one more completion")
+    print("task #6: run")
+
+    print("task #6: will append one more completion")
     queue.run {
-        _ in println("completion: appended completion run")
+        _ in print("completion: appended completion run")
     }
-    
-    println("task #6: will skip all remaining tasks")
+
+    print("task #6: will skip all remaining tasks")
     queue.removeAll()
 }
 
 queue.tasks += {
-    println("task #7: run")
+    print("task #7: run")
 }
 
 //
@@ -245,8 +246,8 @@ queue.run()
 // trough executing the queue.
 //
 queue.run {result in
-    println("====== completions ======")
-    println("initial completion: run")
+    print("====== completions ======")
+    print("initial completion: run")
 }
 </pre>
 
@@ -263,7 +264,7 @@ Author: **Marin Todorov**
 * [https://twitter.com/icanzilb](https://twitter.com/icanzilb)
 * [http://www.touch-code-magazine.com/about/](http://www.touch-code-magazine.com/about/)
 
-<a name="license"></a> 
+<a name="license"></a>
 License
 ========
 TaskQueue is available under the MIT license. See the LICENSE file for more info.
